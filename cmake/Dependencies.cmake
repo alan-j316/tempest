@@ -32,6 +32,7 @@ FetchContent_Declare(
 )
 
 # TinyObjLoader gives error with compatibility
+set(CMAKE_POLICY_VERSION_MINIMUM 3.10) # Suppress Tiny Obj warning
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum policy version" FORCE)
 FetchContent_Declare(
         tinyobj

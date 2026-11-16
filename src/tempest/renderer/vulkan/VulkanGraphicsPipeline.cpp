@@ -338,6 +338,7 @@ namespace tempest::renderer
         accumulator += deltaTime;
         float s                    = (std::sin(accumulator) + 1.0f) / 2.0f; // From -1-1 to 0-1
         objectUniform.diffuseColor = flcn::Vec4F{ s, s, s, 1.0f };
+        // TODO: Start here from Object UBO creation
     }
 
 

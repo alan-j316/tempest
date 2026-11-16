@@ -61,6 +61,35 @@
                 "CMAKE_C_FLAGS": "-target x86_64-pc-windows-msvc",
                 "CMAKE_LINKER": "lld-link"
             }
+        }, {
+            "name": "GCC-Debug",
+            "displayName": "GCC Debug",
+            "inherits": "base-windows",
+            "vendor": {
+                "jetbrains.com/clion": {
+                    "toolchain": "MinGW"
+                }
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_CXX_COMPILER": "g++",
+                "CMAKE_C_COMPILER": "gcc"
+            }
+        },
+        {
+            "name": "GCC-Release",
+            "displayName": "GCC Release",
+            "inherits": "base-windows",
+            "vendor": {
+                "jetbrains.com/clion": {
+                    "toolchain": "MinGW"
+                }
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_COMPILER": "g++",
+                "CMAKE_C_COMPILER": "gcc"
+            }
         }
     ]
 }

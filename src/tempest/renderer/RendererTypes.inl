@@ -51,7 +51,7 @@ namespace tempest::renderer
     struct ObjectUniform
     {
         flcn::Vec4F diffuseColor;
-        flcn::Vec4F reserved0, reserved1, reserved2;
+        flcn::Vec4F _reserved0, _reserved1, _reserved2;
     };
 
     struct GeometryRenderData

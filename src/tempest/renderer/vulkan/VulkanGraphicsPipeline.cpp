@@ -165,16 +165,17 @@ namespace tempest::renderer
             .pBindings    = objectDescriptorBindings,
         };
         _objectDescriptorSetLayout =
-            device.getLogicalDevice().createDescriptorSetLayout(objectDescriptorLayoutInfo, allocator);
+            vk::raii::DescriptorSetLayout(device.getLogicalDevice(), objectDescriptorLayoutInfo, allocator);
 
         // Descriptor Pool
         vk::DescriptorPoolSize objectPoolSizes[1];
+        objectPoolSizes[0].type            = vk::DescriptorType::eUniformBuffer;
         objectPoolSizes[0].descriptorCount = VULKAN_MAX_OBJECT_DESCRIPTOR_COUNT;
 
         vk::DescriptorPoolCreateInfo objectPoolCreateInfo{ .maxSets       = VULKAN_MAX_OBJECT_COUNT,
                                                            .poolSizeCount = 1,
                                                            .pPoolSizes    = objectPoolSizes };
-        _objectDescriptorPool = device.getLogicalDevice().createDescriptorPool(objectPoolCreateInfo, allocator);
+        _objectDescriptorPool = vk::raii::DescriptorPool(device.getLogicalDevice(), objectPoolCreateInfo, allocator);
 
 
         /// ----------------
@@ -344,9 +345,6 @@ namespace tempest::renderer
 
     void VulkanGraphicsPipeline::destroy(const VulkanDevice& device, vk::AllocationCallbacks* allocator)
     {
-        const vk::Device logDev = *device.getLogicalDevice();
-
-
         _objectUniformBuffers.unmap();
         _objectUniformBuffers.destroy();
         // Unmap the uniform buffer memory
@@ -358,9 +356,8 @@ namespace tempest::renderer
 
         _pipeline = nullptr;
 
-        vkDestroyDescriptorPool(logDev, _objectDescriptorPool, *allocator);
-        vkDestroyDescriptorSetLayout(logDev, _objectDescriptorSetLayout, *allocator);
-
+        _objectDescriptorPool      = nullptr;
+        _objectDescriptorSetLayout = nullptr;
         _globalDescriptorPool      = nullptr;
         _globalDescriptorSetLayout = nullptr;
 

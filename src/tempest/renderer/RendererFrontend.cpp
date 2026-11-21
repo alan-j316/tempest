@@ -77,7 +77,11 @@ namespace tempest::renderer
         {
             // TODO: TEMP REMOVE
             const flcn::Mat4F model = flcn::Mat4F::makeRotationX(-flcn::constants::PI<float> / 2);
-            _rendererBackend->updateObjectState(model);
+            const GeometryRenderData data{
+                .objectId = 0,
+                .model = model
+            };
+            _rendererBackend->updateObjectState(data);
             _rendererBackend->updateGlobalState(_projection, _view, flcn::Vec3F::zero(), flcn::Vec4F::zero(), 0);
             // TODO: TEMP REMOVE END
             // If the frame can't be ended then the error is fatal and application must be quit.

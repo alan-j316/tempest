@@ -515,9 +515,9 @@ namespace tempest::renderer
     }
 
 
-    tempest::Texture VulkanBackend::createTexture(std::string name, const uint32_t width, const uint32_t height,
-                                                  const uint32_t channelCount, const uint8_t* pixels,
-                                                  bool hasTransparency, bool autoRelease) noexcept
+    Texture VulkanBackend::createTexture(std::string name, const uint32_t width, const uint32_t height,
+                                         const uint32_t channelCount, const uint8_t* pixels, bool hasTransparency,
+                                         bool autoRelease) noexcept
     {
         Texture texture{ .generation   = INVALID_UID,
                          .width        = width,
@@ -636,7 +636,8 @@ namespace tempest::renderer
     {
         const auto cmdBufferHandle = _ctx->graphicsCommandBuffers[_ctx->frameIndex];
         const auto cmdBuffer       = _ctx->graphicsCmdPool.get(cmdBufferHandle);
-        _ctx->graphicsPipeline.updateObjectData(cmdBuffer, renderData, TODO, TODO);
+        // TODO: Update params to updateObjectData with realtime values
+        _ctx->graphicsPipeline.updateObjectData(cmdBuffer, renderData, 0, 0);
         // TODO: TEMP REMOVE
         _ctx->graphicsCmdPool.drawIndexed(static_cast<uint32_t>(_ctx->activeIndices), 1, 0, 0, 0);
         // TODO: TEMP REMOVE END

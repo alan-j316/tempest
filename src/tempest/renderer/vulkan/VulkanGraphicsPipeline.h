@@ -129,8 +129,8 @@ namespace tempest::renderer
 
         // ------------------------ OBJECT UBO ------------------------
         VulkanShaderObjectState _objectStates[VULKAN_MAX_OBJECT_COUNT]{}; // TODO: Make dynamic
-        vk::DescriptorSetLayout _objectDescriptorSetLayout{ nullptr };
-        vk::DescriptorPool _objectDescriptorPool{ nullptr };
+        vk::raii::DescriptorSetLayout _objectDescriptorSetLayout{ nullptr };
+        vk::raii::DescriptorPool _objectDescriptorPool{ nullptr };
         VulkanBuffer _objectUniformBuffers{};
         UID _objectBufferUniformIndex{};
         void* _pObjectUnformBuffer{ nullptr };

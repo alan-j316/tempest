@@ -33,6 +33,7 @@ add_subdirectory(core)
 add_subdirectory(platform)
 add_subdirectory(renderer)
 add_subdirectory(resources)
+add_subdirectory(ecs)
 
 target_link_libraries(
         ${ENGINE_NAME}
@@ -42,6 +43,7 @@ target_link_libraries(
         Tempest::Internal::Platform
         Tempest::Internal::Renderer
         Tempest::Internal::Resources
+        Tempest::Internal::ECS
         SDL3::SDL3-static
         std::stb
 )

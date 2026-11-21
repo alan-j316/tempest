@@ -83,12 +83,13 @@ namespace tempest::renderer
 
         /**
          * Update the model uniform buffer.
+         * @param device
          * @param renderData
          * @param imageIndex
          * @param deltaTime
          */
-        void updateObjectData(vk::CommandBuffer cmdBuffer, const GeometryRenderData& renderData, uint32_t imageIndex,
-                              float deltaTime) const noexcept;
+        void updateObjectData(vk::CommandBuffer cmdBuffer, vk::Device device, const GeometryRenderData& renderData,
+                              uint32_t imageIndex, float deltaTime) noexcept;
 
 
         /**
@@ -109,9 +110,9 @@ namespace tempest::renderer
         /// Get the vulkan pipeline layout.
         [[nodiscard]] vk::PipelineLayout descriptorLayout() const noexcept { return *_pipelineLayout; }
 
-        UID acquireResource() noexcept;
+        UID acquireResource(vk::Device device) noexcept;
 
-        void releaseResource(UID id) noexcept;
+        void releaseResource(UID id, vk::Device device) noexcept;
 
 
     private:

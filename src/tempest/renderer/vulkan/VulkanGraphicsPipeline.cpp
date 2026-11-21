@@ -312,9 +312,9 @@ namespace tempest::renderer
     }
 
 
-    void VulkanGraphicsPipeline::updateObjectData(const vk::CommandBuffer cmdBuffer,
+    void VulkanGraphicsPipeline::updateObjectData(const vk::CommandBuffer cmdBuffer, const vk::Device device,
                                                   const GeometryRenderData& renderData, const uint32_t imageIndex,
-                                                  const float deltaTime) const noexcept
+                                                  const float deltaTime) noexcept
     {
         TEMPEST_ASSERT(imageIndex < MAX_FRAMES_IN_FLIGHT_DEF,
                        "[GraphicsPipeline/updateObjectData]: Frame Index out of bounds!");
@@ -322,8 +322,8 @@ namespace tempest::renderer
         cmdBuffer.pushConstants(_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(ModelUniform),
                                 &renderData.model);
         // TODO: Only update if required
-        auto& objectState                     = _objectStates[renderData.objectId];
-        vk::DescriptorSet objectDescriptorSet = objectState.descriptorSet[imageIndex];
+        auto& objectState                           = _objectStates[renderData.objectId];
+        const vk::DescriptorSet objectDescriptorSet = objectState.descriptorSet[imageIndex];
 
         vk::WriteDescriptorSet descriptorWrites[VULKAN_MAX_OBJECT_DESCRIPTOR_COUNT];
         uint32_t descriptorCount = 0;
@@ -337,9 +337,38 @@ namespace tempest::renderer
 
         float accumulator = 0.0f;
         accumulator += deltaTime;
-        float s                    = (std::sin(accumulator) + 1.0f) / 2.0f; // From -1-1 to 0-1
+        const float s              = (std::sin(accumulator) + 1.0f) / 2.0f; // From -1-1 to 0-1
         objectUniform.diffuseColor = flcn::Vec4F{ s, s, s, 1.0f };
-        // TODO: Start here from Object UBO creation
+
+        // Load the data into the buffer(the buffer has already been mapped)
+        memcpy(_pObjectUnformBuffer, &objectUniform, sizeof(ObjectUniform));
+
+        // Only do this if the descriptor hasn't been updated yet
+        if (objectState.descriptorStates[descriptorIndex].generation[imageIndex] == INVALID_UID)
+        {
+            vk::DescriptorBufferInfo bufferInfo{ .buffer = _objectUniformBuffers.buffer(),
+                                                 .offset = offset,
+                                                 .range  = range };
+
+            vk::WriteDescriptorSet writeInfo{ .dstSet          = objectDescriptorSet,
+                                              .dstBinding      = descriptorIndex,
+                                              .descriptorCount = 1,
+                                              .descriptorType  = vk::DescriptorType::eUniformBuffer,
+                                              .pBufferInfo     = &bufferInfo };
+            descriptorWrites[descriptorCount] = writeInfo;
+            ++descriptorCount;
+
+            // Update frame generation.
+            objectState.descriptorStates[descriptorIndex].generation[imageIndex] = 1;
+        }
+        ++descriptorIndex;
+
+        if (descriptorCount > 0)
+        {
+            device.updateDescriptorSets(descriptorCount, descriptorWrites, 0, nullptr);
+        }
+        cmdBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _pipelineLayout, 1, 1, &objectDescriptorSet, 0,
+                                     nullptr);
     }
 
 
@@ -367,7 +396,49 @@ namespace tempest::renderer
 
 
     // TODO:IMPL
-    UID VulkanGraphicsPipeline::acquireResource() noexcept { return INVALID_UID; }
+    UID VulkanGraphicsPipeline::acquireResource(const vk::Device device) noexcept
+    {
+        const auto objectId = _objectBufferUniformIndex;
+        ++_objectBufferUniformIndex;
 
-    void VulkanGraphicsPipeline::releaseResource(UID id) noexcept {}
+        auto& [descriptorSets, descriptorStates] = _objectStates[objectId];
+        for (size_t idx = 0; idx < VULKAN_MAX_OBJECT_DESCRIPTOR_COUNT; ++idx)
+        {
+            for (auto& descriptorGen : descriptorStates[idx].generation)
+            {
+                descriptorGen = INVALID_UID;
+            }
+        }
+
+        vk::DescriptorSetLayout layout[MAX_FRAMES_IN_FLIGHT_DEF] = { _objectDescriptorSetLayout,
+                                                                     _objectDescriptorSetLayout };
+
+        const vk::DescriptorSetAllocateInfo allocateInfo{ .descriptorPool = _objectDescriptorPool,
+                                                          .descriptorSetCount =
+                                                              MAX_FRAMES_IN_FLIGHT_DEF, // One per frame in flight
+                                                          .pSetLayouts = layout };
+        if (const auto result = device.allocateDescriptorSets(&allocateInfo, descriptorSets);
+            result != vk::Result::eSuccess)
+        {
+            log::error("An error occurred while creating the descriptor set!");
+        }
+        return objectId;
+    }
+
+    void VulkanGraphicsPipeline::releaseResource(const UID id, const vk::Device device) noexcept
+    {
+        auto& [descriptorSet, descriptorStates] = _objectStates[id];
+        if (const auto result = device.freeDescriptorSets(_objectDescriptorPool, MAX_FRAMES_IN_FLIGHT_DEF, descriptorSet);
+            result != vk::Result::eSuccess)
+        {
+            log::error("An error occurred while freeing descriptor set!");
+        }
+        for (size_t idx = 0; idx < VULKAN_MAX_OBJECT_DESCRIPTOR_COUNT; ++idx)
+        {
+            for (auto& descriptorGen : descriptorStates[idx].generation)
+            {
+                descriptorGen = INVALID_UID;
+            }
+        }
+    }
 } // namespace tempest::renderer

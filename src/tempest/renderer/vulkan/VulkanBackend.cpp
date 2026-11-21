@@ -294,7 +294,7 @@ namespace tempest::renderer
         };
         _ctx->indexBuffer.create(_ctx->vma, indexConfig);
 
-        auto objectId = _ctx->graphicsPipeline.acquireResource();
+        auto objectId = _ctx->graphicsPipeline.acquireResource(_ctx->device.getLogicalDevice());
         if (objectId == INVALID_UID)
         {
             log::error("Failed to acquire resource");
@@ -637,7 +637,7 @@ namespace tempest::renderer
         const auto cmdBufferHandle = _ctx->graphicsCommandBuffers[_ctx->frameIndex];
         const auto cmdBuffer       = _ctx->graphicsCmdPool.get(cmdBufferHandle);
         // TODO: Update params to updateObjectData with realtime values
-        _ctx->graphicsPipeline.updateObjectData(cmdBuffer, renderData, 0, 0);
+        _ctx->graphicsPipeline.updateObjectData(cmdBuffer, _ctx->device.getLogicalDevice(), renderData, 0, 0);
         // TODO: TEMP REMOVE
         _ctx->graphicsCmdPool.drawIndexed(static_cast<uint32_t>(_ctx->activeIndices), 1, 0, 0, 0);
         // TODO: TEMP REMOVE END

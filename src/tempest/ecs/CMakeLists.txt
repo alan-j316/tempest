@@ -4,6 +4,7 @@ add_library(
         Entity.h
         components/Component.h
         components/Transform.h
+        EntityManager.h
 )
 
 

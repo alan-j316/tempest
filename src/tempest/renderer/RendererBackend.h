@@ -34,7 +34,7 @@ namespace tempest::renderer
         virtual bool updateGlobalState(flcn::Mat4F projection, flcn::Mat4F view, flcn::Vec3F viewPosition,
                                        flcn::Vec4F ambientColor, uint32_t mode) noexcept = 0;
         /// Update the object state.
-        virtual bool updateObjectState(const GeometryRenderData& renderData) noexcept = 0;
+        virtual bool updateObjectState(const GeometryRenderData& renderData, float deltaTime) noexcept = 0;
 
 
         constexpr void incrementFrameNumber() noexcept { ++_frameNumber; }

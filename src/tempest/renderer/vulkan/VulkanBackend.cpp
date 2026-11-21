@@ -632,12 +632,12 @@ namespace tempest::renderer
     }
 
 
-    bool VulkanBackend::updateObjectState(const GeometryRenderData& renderData) noexcept
+    bool VulkanBackend::updateObjectState(const GeometryRenderData& renderData, const float deltaTime) noexcept
     {
         const auto cmdBufferHandle = _ctx->graphicsCommandBuffers[_ctx->frameIndex];
         const auto cmdBuffer       = _ctx->graphicsCmdPool.get(cmdBufferHandle);
         // TODO: Update params to updateObjectData with realtime values
-        _ctx->graphicsPipeline.updateObjectData(cmdBuffer, _ctx->device.getLogicalDevice(), renderData, 0, 0);
+        _ctx->graphicsPipeline.updateObjectData(cmdBuffer, _ctx->device.getLogicalDevice(), renderData, 0, deltaTime);
         // TODO: TEMP REMOVE
         _ctx->graphicsCmdPool.drawIndexed(static_cast<uint32_t>(_ctx->activeIndices), 1, 0, 0, 0);
         // TODO: TEMP REMOVE END

@@ -5,6 +5,8 @@ add_library(
         components/Component.h
         components/Transform.h
         EntityManager.h
+        ComponentArray.h
+        ComponentManager.h
 )
 
 

@@ -7,6 +7,9 @@ add_library(
         EntityManager.h
         ComponentArray.h
         ComponentManager.h
+        Coordinator.h
+        System.h
+        SystemManager.h
 )
 
 

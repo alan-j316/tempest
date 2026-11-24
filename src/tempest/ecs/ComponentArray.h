@@ -12,6 +12,7 @@
 #include "Entity.h"
 
 #include <cassert>
+#include <array>
 #include <unordered_map>
 
 namespace tempest

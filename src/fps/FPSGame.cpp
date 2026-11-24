@@ -33,6 +33,20 @@ namespace fps
         // Entity player = context.createEntity();
         // context.a
         tempest::log::info("Game initialized");
+        // const auto registry = getContext().registry;
+        // registry->registerComponent<FluidParameters>();
+        // registry->registerComponent<Transform>();
+        // const auto water = registry->createEntity();
+        //
+        // auto fluidSystem = registry->registerSystem<FluidSystem>();
+        // tempest::Signature fluidSystemSign;
+        // fluidSystemSign.set(registry->getComponentType<FluidParameters>());
+        // fluidSystemSign.set(registry->getComponentType<Transform>());
+        // fluidSystem->setSignature(fluidSystemSign);
+        //
+        // // TODO: Move to update
+        // // fluidSystem->update(dt);
+
 
         const auto assertMgr = getContext().assetManager;
         // assertMgr.loadModel("assets/models/monkey.glb");

@@ -17,6 +17,8 @@
 #include "renderer/RendererFrontend.h"
 #include "renderer/events/RendererEventQueue.h"
 
+#include <ecs/Coordinator.h>
+
 namespace tempest
 {
     /// Forward declaration
@@ -31,6 +33,7 @@ namespace tempest
         core::AssetManager* assetManager{};
         // TODO: REMOVE RENDERER SHOULDN'T BE EXPOSED
         renderer::RendererFrontend* renderer{};
+        Coordinator* registry;
     };
 
     namespace core
@@ -59,6 +62,8 @@ namespace tempest
             ApplicationEventListener _appEventListener;
             KeyEventListener _keyEventListener;
             ResizeEventListener _resizeEventListener;
+
+            Coordinator _coordinator{};
 
             /// System Events
             renderer::RendererEventQueue _rendererEventQueue{};

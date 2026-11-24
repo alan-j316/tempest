@@ -19,10 +19,12 @@
 #include "platform/ClockTime.h"
 #include "renderer/RendererFrontend.h"
 
+#include <utility>
+
 
 namespace tempest::core
 {
-    static bool _isInitialized = false; // TODO: Update to TMP based singleton
+    static bool g_isInitialized = false; // TODO: Update to TMP based singleton
 
     Application::Application() noexcept: _appEventListener(*this), _keyEventListener(*this), _resizeEventListener(*this)
     {}
@@ -30,7 +32,7 @@ namespace tempest::core
 
     bool Application::create() noexcept
     {
-        if (_isInitialized)
+        if (g_isInitialized)
         {
             log::error("Application already initialized");
             return false;
@@ -72,17 +74,18 @@ namespace tempest::core
             return false;
         }
 
-        // TODO: REMOVE
+        // TODO: REMOVE renderer
         _context.renderer     = &_renderer;
         _context.assetManager = &_assetManager;
+        _context.registry     = &_coordinator;
 
         /// +---------------------------------------------------------------------------------------+
         /// |                       REGISTER EVENT LISTENERS                                        |
         /// +---------------------------------------------------------------------------------------+
-        registerEvent(static_cast<EventCode>(SystemEventCode::APPLICATION_QUIT), &_appEventListener);
+        registerEvent(std::to_underlying(SystemEventCode::APPLICATION_QUIT), &_appEventListener);
         // registerEvent(static_cast<EventCode>(SystemEventCode::KEY_PRESSED), &_keyEventListener);
         // registerEvent(static_cast<EventCode>(SystemEventCode::KEY_RELEASED), &_keyEventListener);
-        registerEvent(static_cast<EventCode>(SystemEventCode::WINDOW_RESIZED), &_resizeEventListener);
+        registerEvent(std::to_underlying(SystemEventCode::WINDOW_RESIZED), &_resizeEventListener);
 
 
         /// +---------------------------------------------------------------------------------------+
@@ -97,11 +100,11 @@ namespace tempest::core
         }
 
         // Initialize application state
-        _isInitialized = true;
-        _isRunning     = true;
-        _isSuspended   = false;
+        g_isInitialized = true;
+        _isRunning      = true;
+        _isSuspended    = false;
 
-        return _isInitialized;
+        return g_isInitialized;
     }
 
 
@@ -167,10 +170,10 @@ namespace tempest::core
         }
 
         // Unregister events
-        unregisterEvent(static_cast<EventCode>(SystemEventCode::APPLICATION_QUIT), &_appEventListener);
+        unregisterEvent(std::to_underlying(SystemEventCode::APPLICATION_QUIT), &_appEventListener);
         // unregisterEvent(static_cast<EventCode>(SystemEventCode::KEY_PRESSED), &_keyEventListener);
         // unregisterEvent(static_cast<EventCode>(SystemEventCode::KEY_RELEASED), &_keyEventListener);
-        unregisterEvent(static_cast<EventCode>(SystemEventCode::WINDOW_RESIZED), &_resizeEventListener);
+        unregisterEvent(std::to_underlying(SystemEventCode::WINDOW_RESIZED), &_resizeEventListener);
 
         event::shutdown();
         input::shutdown();

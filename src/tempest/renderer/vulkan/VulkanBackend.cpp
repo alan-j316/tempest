@@ -38,6 +38,46 @@
 
 namespace tempest::renderer
 {
+
+
+    core::Geometry createPlane(uint32_t xSegments, uint32_t ySegments, uint32_t width, uint32_t height)
+    {
+
+        core::Geometry geometry;
+        auto& indices  = geometry.indices;
+        auto& vertices = geometry.vertices;
+        for (uint32_t i = 0; i < ySegments; ++i) // Top to bottom
+        {
+            for (uint32_t j = 0; j < xSegments; ++j) // Left to right
+            {
+                core::Vertex vert;
+                // First tri index
+                if ((i + 1) < ySegments && (j + 1) < xSegments)
+                {
+                    // Clockwise winding order.
+                    // Tri 1 |_
+                    const auto nextRow = (i + 1) * xSegments;
+                    const auto curRow  = i * xSegments;
+                    indices.push_back(curRow + j);
+                    indices.push_back(curRow + j + 1);
+                    indices.push_back(nextRow + j);
+
+                    // Tri 2 -|
+                    indices.push_back(curRow + j + 1);
+                    indices.push_back(nextRow + j + 1);
+                    indices.push_back(nextRow + j);
+                }
+
+                vert.uv       = { static_cast<float>(j) / static_cast<float>(xSegments),
+                                  static_cast<float>(i) / static_cast<float>(ySegments) };
+                vert.position = { vert.uv.s() * static_cast<float>(width), vert.uv.t() * static_cast<float>(height),
+                                  0.0f };
+                vertices.emplace_back(vert);
+            }
+        }
+        return geometry;
+    }
+
     struct VulkanContext
     {
         size_t frameIndex{ 0 }, swapChainImageIndex{ 0 };
@@ -300,7 +340,6 @@ namespace tempest::renderer
             log::error("Failed to acquire resource");
             return false;
         }
-
         /// TODO: TEMP REMOVE END
 
         log::info("Vulkan Renderer Initialized");
@@ -725,11 +764,13 @@ namespace tempest::renderer
     {
         // const auto bufferHandle = _ctx->graphicsCommandBuffers[_ctx->frameIndex];
 
-        RenderUploadEvent event{};
-        while (_rendererEventQueue->poll(event))
+        // TODO: REMOVE/REFACTOR TEMP CODE
+        auto plane          = createPlane(128, 128, 12, 12);
+        static bool addGeom = true;
+        if (addGeom)
         {
-            const auto& vertices = event.vertices;
-            const auto& indices  = event.indices;
+            const auto& vertices = plane.vertices;
+            const auto& indices  = plane.indices;
 
             // Upload vertex data.
             const auto vertSize = vertices.size() * sizeof(core::Vertex);
@@ -743,6 +784,29 @@ namespace tempest::renderer
             memcpy(indexMemory, indices.data(), idxSize);
             _ctx->indexBuffer.unmap();
             _ctx->activeIndices = indices.size();
+
+            addGeom = false;
+        }
+
+        RenderUploadEvent event{};
+        while (_rendererEventQueue->poll(event))
+        {
+            // TODO: Add back
+            // const auto& vertices = event.vertices;
+            // const auto& indices  = event.indices;
+            //
+            // // Upload vertex data.
+            // const auto vertSize = vertices.size() * sizeof(core::Vertex);
+            // void* vertexMemory  = _ctx->vertexBuffer.map();
+            // memcpy(vertexMemory, vertices.data(), vertSize);
+            // _ctx->vertexBuffer.unmap();
+            //
+            // // Upload index data.
+            // const auto idxSize = indices.size() * sizeof(uint32_t);
+            // void* indexMemory  = _ctx->indexBuffer.map();
+            // memcpy(indexMemory, indices.data(), idxSize);
+            // _ctx->indexBuffer.unmap();
+            // _ctx->activeIndices = indices.size();
         }
     }
 

@@ -76,7 +76,8 @@ namespace tempest::renderer
         if (beginFrame(packet.deltaTime))
         {
             // TODO: TEMP REMOVE
-            const flcn::Mat4F model = flcn::Mat4F::makeRotationX(-flcn::constants::PI<float> / 2);
+            const flcn::Mat4F model = flcn::Mat4F::identity();
+            // const flcn::Mat4F model = flcn::Mat4F::makeRotationX(-flcn::constants::PI<float> / 2);
             const GeometryRenderData data{
                 .objectId = 0,
                 .model = model

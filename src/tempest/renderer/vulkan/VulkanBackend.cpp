@@ -32,17 +32,16 @@
 
 // TODO: Temporary REMOVE
 #define STB_IMAGE_IMPLEMENTATION
+#include "pipelines/FluidPipeline.h"
+
 #include <stb_image.h>
 // TODO: Temporary REMOVE END
 
 
 namespace tempest::renderer
 {
-
-
     core::Geometry createPlane(uint32_t xSegments, uint32_t ySegments, uint32_t width, uint32_t height)
     {
-
         core::Geometry geometry;
         auto& indices  = geometry.indices;
         auto& vertices = geometry.vertices;
@@ -93,6 +92,7 @@ namespace tempest::renderer
         VulkanCmdPool graphicsCmdPool{};
         VulkanGraphicsPipeline graphicsPipeline{};
         Vector<VulkanCmdPool::CmdBufferHandle> graphicsCommandBuffers{ makeVector<VulkanCmdPool::CmdBufferHandle>() };
+        FluidPipeline fluidPipeline{};
         // Synchronization primitives
         Vector<vk::raii::Semaphore> imageAvailableSemaphores{ makeVector<vk::raii::Semaphore>() };
         Vector<vk::raii::Semaphore> renderFinishedSemaphore{ makeVector<vk::raii::Semaphore>() };
@@ -292,8 +292,8 @@ namespace tempest::renderer
         // ------------------------
 
         // TODO: TEMPORARY
-        const auto vertCode = utils::readFile("assets/shaders/Simple.vert.spv");
-        const auto fragCode = utils::readFile("assets/shaders/Simple.frag.spv");
+        const auto vertCode = utils::readFile("assets/shaders/Fluid.vert.spv");
+        const auto fragCode = utils::readFile("assets/shaders/Fluid.frag.spv");
         // TODO: TEMPORARY
 
         _ctx->graphicsPipeline = VulkanGraphicsPipeline();
@@ -310,7 +310,9 @@ namespace tempest::renderer
             .topology             = vk::PrimitiveTopology::eTriangleList,
 
         };
-        _ctx->graphicsPipeline.create(_ctx->device, _ctx->swapChain, pipelineConfig, _ctx->vma, _ctx->allocator);
+        // _ctx->graphicsPipeline.create(_ctx->device, _ctx->swapChain, pipelineConfig, _ctx->vma, _ctx->allocator);
+
+        _ctx->fluidPipeline.create(_ctx->device, _ctx->swapChain, pipelineConfig, _ctx->vma, _ctx->allocator);
 
 
         /// TODO: TEMP REMOVE
@@ -334,12 +336,12 @@ namespace tempest::renderer
         };
         _ctx->indexBuffer.create(_ctx->vma, indexConfig);
 
-        auto objectId = _ctx->graphicsPipeline.acquireResource(_ctx->device.getLogicalDevice());
-        if (objectId == INVALID_UID)
-        {
-            log::error("Failed to acquire resource");
-            return false;
-        }
+        // auto objectId = _ctx->graphicsPipeline.acquireResource(_ctx->device.getLogicalDevice());
+        // if (objectId == INVALID_UID)
+        // {
+        //     log::error("Failed to acquire resource");
+        //     return false;
+        // }
         /// TODO: TEMP REMOVE END
 
         log::info("Vulkan Renderer Initialized");
@@ -357,8 +359,8 @@ namespace tempest::renderer
         _ctx->indexBuffer.destroy();
         // TODO: END REMOVE
 
-
-        _ctx->graphicsPipeline.destroy(_ctx->device, _ctx->allocator);
+        _ctx->fluidPipeline.destroy(_ctx->device, _ctx->vma, _ctx->allocator);
+        // _ctx->graphicsPipeline.destroy(_ctx->device, _ctx->allocator);
 
         vmaDestroyAllocator(_ctx->vma);
 
@@ -435,7 +437,8 @@ namespace tempest::renderer
         // ------------------------------
         //     PIPELINE CONFIGURATION
         // ------------------------------
-        _ctx->graphicsCmdPool.bindPipeline(vk::PipelineBindPoint::eGraphics, _ctx->graphicsPipeline);
+        // _ctx->graphicsCmdPool.bindPipeline(vk::PipelineBindPoint::eGraphics, _ctx->graphicsPipeline);
+        _ctx->graphicsCmdPool.bindPipeline(vk::PipelineBindPoint::eGraphics, _ctx->fluidPipeline.base());
 
         // TODO: TEMP REMOVE
         _ctx->graphicsCmdPool.bindVertexBuffer(0, _ctx->vertexBuffer);
@@ -493,9 +496,11 @@ namespace tempest::renderer
                                           vk::Viewport(0.0f, 0.0f, static_cast<float>(_ctx->swapChainExtent.width),
                                                        static_cast<float>(_ctx->swapChainExtent.height), 0.0f, 1.0f));
         _ctx->graphicsCmdPool.setScissor(0, vk::Rect2D(vk::Offset2D(0, 0), _ctx->swapChainExtent));
-        _ctx->graphicsCmdPool.bindDescriptorSet(vk::PipelineBindPoint::eGraphics,
-                                                _ctx->graphicsPipeline.descriptorLayout(), 0,
-                                                _ctx->graphicsPipeline.descriptorSet(_ctx->frameIndex), nullptr);
+        // _ctx->graphicsCmdPool.bindDescriptorSet(vk::PipelineBindPoint::eGraphics,
+        //                                         _ctx->graphicsPipeline.descriptorLayout(), 0,
+        //                                         _ctx->graphicsPipeline.descriptorSet(_ctx->frameIndex), nullptr);
+        _ctx->graphicsCmdPool.bindDescriptorSet(vk::PipelineBindPoint::eGraphics, _ctx->fluidPipeline.layout(), 0,
+                                                _ctx->fluidPipeline.descriptorSet(_ctx->frameIndex), nullptr);
         // TODO: Needs to put the draw call right here
 
         return true;
@@ -665,8 +670,9 @@ namespace tempest::renderer
     {
         const auto cmdBufferHandle = _ctx->graphicsCommandBuffers[_ctx->frameIndex];
         _ctx->graphicsCmdPool.makeActive(cmdBufferHandle);
-        _ctx->graphicsPipeline.updateGlobalUBO(_ctx->frameIndex, GlobalUniform{ .view = view, .proj = projection },
-                                               _ctx->frameDeltaTime);
+        // _ctx->graphicsPipeline.updateGlobalUBO(_ctx->frameIndex, GlobalUniform{ .view = view, .proj = projection },
+        //                                        _ctx->frameDeltaTime);
+        _ctx->fluidPipeline.updateGlobalUBO(GlobalUniform{ .view = view, .proj = projection }, _ctx->frameIndex);
         return true;
     }
 
@@ -675,8 +681,11 @@ namespace tempest::renderer
     {
         const auto cmdBufferHandle = _ctx->graphicsCommandBuffers[_ctx->frameIndex];
         const auto cmdBuffer       = _ctx->graphicsCmdPool.get(cmdBufferHandle);
+        cmdBuffer.pushConstants(_ctx->fluidPipeline.layout(), vk::ShaderStageFlagBits::eVertex, 0, sizeof(ModelUniform),
+                                &renderData.model);
         // TODO: Update params to updateObjectData with realtime values
-        _ctx->graphicsPipeline.updateObjectData(cmdBuffer, _ctx->device.getLogicalDevice(), renderData, 0, deltaTime);
+        // _ctx->graphicsPipeline.updateObjectData(cmdBuffer, _ctx->device.getLogicalDevice(), renderData, 0,
+        // deltaTime);
         // TODO: TEMP REMOVE
         _ctx->graphicsCmdPool.drawIndexed(static_cast<uint32_t>(_ctx->activeIndices), 1, 0, 0, 0);
         // TODO: TEMP REMOVE END

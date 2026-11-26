@@ -90,6 +90,15 @@ namespace tempest::renderer
             _cmdBuffers[_activeHandle].bindPipeline(bindPoint, *pipeline.getBasePipeline());
         }
 
+        /// Bind a pipeline to a given command buffer.
+        inline void bindPipeline(const vk::PipelineBindPoint bindPoint, const vk::Pipeline pipeline) const noexcept
+        {
+            TEMPEST_ASSERT(_activeHandle != InvalidCmdBufferHandle,
+                           "[CmdBuffer]: No active handle. Set one using setActive.");
+            _cmdBuffers[_activeHandle].bindPipeline(bindPoint, pipeline);
+        }
+
+
 
         /// Execute the given command buffer's draw command.
         inline void draw(const uint32_t vertexCount, const uint32_t instanceCount, const uint32_t firstVertex,

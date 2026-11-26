@@ -30,7 +30,7 @@ namespace tempest::renderer
 
     constexpr std::array<vk::VertexInputAttributeDescription, 2> getAttributeDescription()
     {
-        return std::array{ vk::VertexInputAttributeDescription{ .location = 0,
+        return std::array<vk::VertexInputAttributeDescription, 2>{ vk::VertexInputAttributeDescription{ .location = 0,
                                                                 .binding  = 0,
                                                                 .format   = vk::Format::eR32G32B32Sfloat,
                                                                 .offset   = offsetof(core::Vertex, position) },

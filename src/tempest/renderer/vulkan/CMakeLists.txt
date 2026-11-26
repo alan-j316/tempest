@@ -10,6 +10,7 @@ add_library(
         VulkanGraphicsPipeline.cpp
         VulkanBuffer.cpp
         VmaImpl.cpp
+        pipelines/FluidPipeline.cpp
 )
 
 
@@ -29,6 +30,9 @@ target_sources(${TEMPEST_RENDERER_VULKAN_LIB} PUBLIC
         VulkanGraphicsPipeline.h
         Utils.h
         VulkanBuffer.h
+        pipelines/PipelineConfig.h
+        pipelines/FluidPipeline.h
+        pipelines/VulkanShaderModule.h
 )
 
 add_library(Tempest::Internal::Renderer::Vulkan ALIAS ${TEMPEST_RENDERER_VULKAN_LIB})
